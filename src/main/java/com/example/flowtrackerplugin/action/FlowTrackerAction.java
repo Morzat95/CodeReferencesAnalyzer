@@ -23,9 +23,9 @@ import static java.util.AbstractMap.SimpleEntry;
 
 import static com.intellij.icons.AllIcons.Actions.DiagramDiff;
 
-public class PopupDialogAction extends AnAction {
+public class FlowTrackerAction extends AnAction {
 
-    public PopupDialogAction() {
+    public FlowTrackerAction() {
         super();
     }
 
@@ -98,7 +98,8 @@ public class PopupDialogAction extends AnAction {
     public void update(@NotNull AnActionEvent event) {
         // Set the availability based on whether an editor is open
         Editor editor = event.getData(CommonDataKeys.EDITOR);
-        event.getPresentation().setEnabledAndVisible(editor != null);
+        boolean isMethodSelection = event.getData(CommonDataKeys.PSI_ELEMENT) instanceof PsiMethod;
+        event.getPresentation().setEnabledAndVisible(editor != null && isMethodSelection);
         event.getPresentation().setIcon(DiagramDiff);
     }
 }
