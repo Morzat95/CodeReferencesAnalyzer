@@ -13,13 +13,10 @@
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
-    <!--
+
     <description><![CDATA[
-    Enter short description for your plugin here.<br>
-    <em>most HTML tags may be used</em>
-  ]]></description>
-  -->
-    <description>This plugin allows you to generate a report with all the fluxes that leads to the current method you are selecting</description>
+    This plugin enables you to analyze the flow of control in your code by generating a report of all the paths leading to the current method you are selecting. Gain greater insight into your code and streamline your debugging process with FlowTracker
+    ]]>.</description>
 
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
@@ -29,36 +26,15 @@
     <!-- Este es el que necesito para navegar el código -->
     <depends>com.intellij.modules.lang</depends>
 
-    <!--
-    <actions>
-        <group id="MyPlugin.Menu" text="My Plugin" description="My Plugin Menu">
-            <action class="com.example.flowtrackerplugin.action.RunMyPluginAction" text="Run My Plugin on Method"
-                    description="Runs My Plugin on the selected method"/>
-        </group>
-    </actions>
-    -->
-
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
-    <extensions defaultExtensionNs="com.intellij">
-        <!--
-        <contextMenu>
-            <menu id="EditorPopupMenu">
-                <group id="MyPlugin.Menu" anchor="first">
-                    <add-to-group id="MyPlugin" anchor="last"
-                                  actionId="com.example.flowtrackerplugin.action.RunMyPluginAction"
-                                  text="Run My Plugin"
-                                  icon="pluginIcon"/>
-                </group>
-            </menu>
-        </contextMenu>
-        -->
-    </extensions>
+    <extensions defaultExtensionNs="com.intellij"/>
+
     <actions>
-        <action id="com.example.flowtrackerplugin.action.PopupDialogAction"
-                class="com.example.flowtrackerplugin.action.PopupDialogAction" text="Pop Dialog Action"
-                description="SDK action example">
-            <override-text place="MainMenu" text="Popup Dialog Action"/>
+        <action id="com.example.flowtrackerplugin.action.FlowTrackerAction"
+                class="com.example.flowtrackerplugin.action.FlowTrackerAction" text="Track Flow"
+                description="Tracks method flow by printing the stack trace of all calling methods in the console.">
+            <override-text place="MainMenu" text="Flow Tracker"/>
             <keyboard-shortcut first-keystroke="control alt A" keymap="$default" second-keystroke="C"/>
             <mouse-shortcut keymap="$default" keystroke="control button3 doubleClick"/>
             <add-to-group group-id="EditorPopupMenu" anchor="first"/>
