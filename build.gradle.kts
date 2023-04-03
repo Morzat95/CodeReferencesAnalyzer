@@ -5,17 +5,13 @@ plugins {
 
 group = "com.example"
 version = "1.0-SNAPSHOT"
-var intellijVersion = "2022.2.5"
 
 repositories {
     mavenCentral()
-    /*maven {
-        setUrl("https://plugins.jetbrains.com/maven")
-    }*/
 }
 
 java {
-    sourceCompatibility = org.gradle.api.JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_11
 }
 
 // Configure Gradle IntelliJ Plugin
@@ -29,8 +25,6 @@ intellij {
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.10")
-    //implementation("org.jetbrains.plugins:gradle-intellij-plugin:1.13.3")
-    //implementation("org.jetbrains.intellij.sdk:$intellijVersion")
 }
 
 tasks {
