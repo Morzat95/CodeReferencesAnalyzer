@@ -28,12 +28,12 @@ public class PopupDialogAction extends AnAction {
 
         // Search for references to the method
         if (psiElement instanceof PsiMethod) {
-            analyzeReferences(event.getProject(), (PsiMethod) psiElement);
+            analyzeReferences(event.getProject(), (PsiMethod) psiElement, new Stack<>());
         }
     }
 
-    private int analyzeReferences(Project project, PsiMethod method) {
-        int indentation = 0;
+    private void analyzeReferences(Project project, PsiMethod method, Stack<PsiMethod> visitedMethods) {
+        visitedMethods.push(method);
 
         // Search for references to the method
         Collection<PsiReference> references = ReferencesSearch.search(method).findAll();
@@ -44,16 +44,25 @@ public class PopupDialogAction extends AnAction {
             // Get the parent method for the current reference
             PsiMethod parentMethod = PsiTreeUtil.getParentOfType(referenceElement, PsiMethod.class);
 
-            indentation = analyzeReferences(project, parentMethod);
-
-            printMessage(project, method, indentation);
+            analyzeReferences(project, parentMethod, visitedMethods);
         }
 
         if (references.isEmpty()) {
-            printMessage(project, method, indentation);
+            printStack(project, visitedMethods);
         }
 
-        return indentation + 4; // The amount of spaces to be used on each line
+        visitedMethods.pop();
+    }
+
+    private void printStack(Project project, Stack<PsiMethod> visitedMethods) {
+        int indentation = 0;
+
+        ListIterator<PsiMethod> listIterator = visitedMethods.listIterator(visitedMethods.size());
+
+        while (listIterator.hasPrevious()) {
+            printMessage(project, listIterator.previous(), indentation);
+            indentation += 4; // The amount of spaces to be used on each line
+        }
     }
 
     private void printMessage(Project project, PsiMethod method, int indentation) {
