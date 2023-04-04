@@ -12,6 +12,7 @@ repositories {
 
 java {
     sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 // Configure Gradle IntelliJ Plugin
@@ -23,19 +24,15 @@ intellij {
     plugins.set(listOf("com.intellij.java"))
 }
 
-dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.10")
-}
-
 tasks {
     // Set the JVM compatibility versions
     withType<JavaCompile> {
-        sourceCompatibility = "11"
-        targetCompatibility = "11"
+        sourceCompatibility = "17"
+        targetCompatibility = "17"
     }
 
     patchPluginXml {
-        sinceBuild.set("221")
+        sinceBuild.set("193.0")
         untilBuild.set("231.*")
     }
 
