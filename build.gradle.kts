@@ -15,6 +15,10 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
+dependencies {
+    implementation("org.apache.logging.log4j:log4j-core:2.20.0")
+}
+
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
