@@ -62,6 +62,14 @@ public class FlowTrackerAction extends AnAction {
 
         // Search for references to the method
         Collection<PsiReference> references = ReferencesSearch.search(method).findAll();
+
+        // Search for superMethods. I have to do this because ReferencesSearch works on the AST level, and the super method is not part of the current AST being searched
+        PsiMethod[] superMethods = method.findSuperMethods();
+
+        for (PsiMethod superMethod : superMethods) {
+            references.addAll(ReferencesSearch.search(superMethod).findAll());
+        }
+
         boolean isFinalNode = true;
 
         for (PsiReference reference : references) {
