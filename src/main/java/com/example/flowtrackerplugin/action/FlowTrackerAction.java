@@ -173,6 +173,9 @@ public class FlowTrackerAction extends AnAction {
             // Get the parent method for the current reference
             PsiMethod parentMethod = PsiTreeUtil.getParentOfType(referenceElement, PsiMethod.class);
 
+            if (parentMethod.equals(method)) // This is to avoid a recursive call like with a Decorator Pattern
+                continue;
+
             boolean parentIsTestNode = analyzeReferences(project, parentMethod, referenceElement, visitedMethods);
 
             isFinalNode = isFinalNode && parentIsTestNode;
