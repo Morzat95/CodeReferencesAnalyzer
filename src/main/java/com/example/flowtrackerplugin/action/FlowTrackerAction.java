@@ -46,31 +46,17 @@ import static java.util.AbstractMap.SimpleEntry;
 public class FlowTrackerAction extends AnAction {
     private static final Logger logger = LogManager.getLogger(FlowTrackerAction.class.getName());
     private ConsoleView consoleView;
-    private final ConsoleViewContentType classNameContentType;
-    private final ConsoleViewContentType methodNameContentType;
-    private final ConsoleViewContentType lineNumberContentType;
-    private final ConsoleViewContentType separatorContentType;
-    private final ConsoleViewContentType emptyContentType;
-    private final int[] RGB_CYAN = new int[]{14, 185, 196};
-    private final int[] RGB_GREEN = new int[]{105, 176, 48};
-    private final int[] RGB_YELLOW = new int[]{163, 136, 47};
-    private final int[] RGB_RED = new int[]{201, 72, 54};
-    private final String ANSI_RESET = "\u001B[0m";
-    private final String ANSI_BRIGHT_CYAN = "\u001B[1;36m";
-    private final String ANSI_GREEN = "\u001B[1;32m";
-    private final String ANSI_ORANGE = "\u001B[0;33m";
-    private final String ANSI_RED = "\u001B[31m";
+    private final ConsoleViewContentType classNameContentType = getContentType(ConsoleColor.BRIGHT_CYAN);
+    private final ConsoleViewContentType methodNameContentType = getContentType(ConsoleColor.GREEN);
+    private final ConsoleViewContentType lineNumberContentType = getContentType(ConsoleColor.ORANGE);
+    private final ConsoleViewContentType separatorContentType = getContentType(ConsoleColor.RED);
+    private final ConsoleViewContentType emptyContentType = getContentType(ConsoleColor.RED);
+    private static final String TOOL_WINDOW_ID = "FlowTrackerPlugin";
+    private static final String TOOL_WINDOW_TAB_ID = "Console";
     private static final String TOOL_WINDOW_ICON = "/flowchart-consoleview-icon.png";
 
     public FlowTrackerAction() {
         super();
-
-        // Initialize ConsoleViewContentTypes
-        classNameContentType = getClassNameContentType();
-        methodNameContentType = getMethodNameContentType();
-        lineNumberContentType = getLineNumberContentType();
-        separatorContentType = getSeparatorContentType();
-        emptyContentType = getEmptyContentType();
     }
 
     @Override
@@ -101,13 +87,11 @@ public class FlowTrackerAction extends AnAction {
     }
 
     private void showConsoleView(Project project, ConsoleView consoleView) {
-        final String toolWindowId = "FlowTrackerPlugin";
-
         ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
-        ToolWindow toolWindow = toolWindowManager.getToolWindow(toolWindowId);
+        ToolWindow toolWindow = toolWindowManager.getToolWindow(TOOL_WINDOW_ID);
 
         if (toolWindow == null) {
-            toolWindow = toolWindowManager.registerToolWindow(toolWindowId, true, ToolWindowAnchor.BOTTOM);
+            toolWindow = toolWindowManager.registerToolWindow(TOOL_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
             toolWindow.setType(ToolWindowType.DOCKED, null);
         }
 
@@ -117,13 +101,13 @@ public class FlowTrackerAction extends AnAction {
 
         if (contentManager.getContentCount() == 0) {
             ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
-            Content content = contentFactory.createContent(consoleView.getComponent(), "Console", true);
+            Content content = contentFactory.createContent(consoleView.getComponent(), TOOL_WINDOW_TAB_ID, true);
             content.setDisposer(disposable);
             contentManager.addContent(content);
         }
 
         // Load the icon image from the resources folder
-        Icon icon = new ImageIcon(getClass().getResource(TOOL_WINDOW_ICON));
+        Icon icon = new ImageIcon(FlowTrackerAction.class.getResource(TOOL_WINDOW_ICON));
         toolWindow.setIcon(icon);
 
         toolWindow.show(consoleView::requestScrollingToEnd);
@@ -235,11 +219,12 @@ public class FlowTrackerAction extends AnAction {
 
         String padding = new String(new char[indentation]).replace('\0', ' '); // I have to do this because the %0s format breaks
 
-        String format = "%s" + ANSI_BRIGHT_CYAN + "%s" + ANSI_RED + "." + ANSI_GREEN + "%s" + ANSI_RED + ":" +
-                ANSI_ORANGE + "%d" + ANSI_RESET + "%n";
-
         // Print the message into ConsoleView
         printMessage(padding, className, methodName, String.valueOf(lineNumber));
+
+        String format = "%s" + ConsoleColor.BRIGHT_CYAN.ansiCode + "%s" + ConsoleColor.RED.ansiCode + "." +
+                ConsoleColor.GREEN.ansiCode + "%s" + ConsoleColor.RED.ansiCode + ":" +
+                ConsoleColor.ORANGE.ansiCode + "%d" + ConsoleColor.RESET.ansiCode + "%n";
 
         return String.format(format, padding, className, methodName, lineNumber);
     }
@@ -260,29 +245,9 @@ public class FlowTrackerAction extends AnAction {
         return document.getLineNumber(element.getTextRange().getStartOffset()) + 1;
     }
 
-    private ConsoleViewContentType getClassNameContentType() {
-        Color color = createColor(RGB_CYAN);
-        return createContentType("className", color);
-    }
-
-    private ConsoleViewContentType getMethodNameContentType() {
-        Color color = createColor(RGB_GREEN);
-        return createContentType("methodName", color);
-    }
-
-    private ConsoleViewContentType getLineNumberContentType() {
-        Color color = createColor(RGB_YELLOW);
-        return createContentType("lineNumber", color);
-    }
-
-    private ConsoleViewContentType getSeparatorContentType() {
-        Color color = createColor(RGB_RED);
-        return createContentType("separator", color);
-    }
-
-    private ConsoleViewContentType getEmptyContentType() {
-        Color color = createColor(RGB_RED);
-        return createContentType("default", color);
+    private ConsoleViewContentType getContentType(ConsoleColor consoleColor) {
+        Color color = createColor(consoleColor.rgbCodes);
+        return createContentType(consoleColor.name(), color);
     }
 
     private Color createColor(int[] rgbColor) {
@@ -303,5 +268,21 @@ public class FlowTrackerAction extends AnAction {
         boolean isMethodSelection = event.getData(CommonDataKeys.PSI_ELEMENT) instanceof PsiMethod;
         event.getPresentation().setEnabledAndVisible(editor != null && isMethodSelection);
         event.getPresentation().setIcon(DiagramDiff);
+    }
+
+    private enum ConsoleColor {
+        RESET("\u001B[0m", new int[]{201, 72, 54}),
+        BRIGHT_CYAN("\u001B[1;36m", new int[]{14, 185, 196}),
+        GREEN("\u001B[1;32m", new int[]{105, 176, 48}),
+        ORANGE("\u001B[0;33m", new int[]{163, 136, 47}),
+        RED("\u001B[31m", new int[]{201, 72, 54});
+
+        private final String ansiCode;
+        private final int[] rgbCodes;
+
+        ConsoleColor(String ansiCode, int[] rgbCodes) {
+            this.ansiCode = ansiCode;
+            this.rgbCodes = rgbCodes;
+        }
     }
 }
