@@ -116,7 +116,7 @@ public class FlowTrackerAction extends AnAction {
         ContentManager contentManager = toolWindow.getContentManager();
 
         if (contentManager.getContentCount() == 0) {
-            ContentFactory contentFactory = ContentFactory.getInstance();
+            ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
             Content content = contentFactory.createContent(consoleView.getComponent(), "Console", true);
             content.setDisposer(disposable);
             contentManager.addContent(content);
