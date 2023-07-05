@@ -133,7 +133,7 @@ public class FlowTrackerAction extends AnAction {
      */
     private boolean analyzeReferences(Project project, PsiMethod method, PsiElement methodReference, Stack<SimpleEntry<PsiMethod, PsiElement>> visitedMethods) {
 
-        if (isTestClass(method.getContainingClass()) || isTestMethod(method)) {
+        if (isTestClass(method.getContainingClass()) || isTestMethod(method) || method.isConstructor()) {
             return true;
         }
 
@@ -160,9 +160,9 @@ public class FlowTrackerAction extends AnAction {
             if (parentMethod.equals(method)) // This is to avoid a recursive call like with a Decorator Pattern
                 continue;
 
-            boolean parentIsTestNode = analyzeReferences(project, parentMethod, referenceElement, visitedMethods);
+            boolean parentIsTestOrConstructorNode = analyzeReferences(project, parentMethod, referenceElement, visitedMethods);
 
-            isFinalNode = isFinalNode && parentIsTestNode;
+            isFinalNode = isFinalNode && parentIsTestOrConstructorNode;
         }
 
         // Print the complete path
