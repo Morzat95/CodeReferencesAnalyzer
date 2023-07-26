@@ -1,10 +1,7 @@
 package com.example.flowtrackerplugin.action;
 
-import com.intellij.execution.filters.TextConsoleBuilderFactory;
-import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -13,10 +10,6 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowAnchor;
-import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.wm.ToolWindowType;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
@@ -25,16 +18,10 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.ui.content.Content;
-import com.intellij.ui.content.ContentFactory;
-import com.intellij.ui.content.ContentManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import java.awt.Color;
 import java.util.Collection;
 import java.util.ListIterator;
@@ -51,9 +38,6 @@ public class FlowTrackerAction extends AnAction {
     private final ConsoleViewContentType lineNumberContentType = getContentType(ConsoleColor.ORANGE);
     private final ConsoleViewContentType separatorContentType = getContentType(ConsoleColor.RED);
     private final ConsoleViewContentType emptyContentType = getContentType(ConsoleColor.RED);
-    private static final String TOOL_WINDOW_ID = "FlowTrackerPlugin";
-    private static final String TOOL_WINDOW_TAB_ID = "Console";
-    private static final String TOOL_WINDOW_ICON = "/flowchart-consoleview-icon.png";
 
     public FlowTrackerAction() {
         super();
@@ -64,10 +48,7 @@ public class FlowTrackerAction extends AnAction {
         Project project = event.getProject();
 
         // Initialize the ConsoleView
-        if (consoleView == null || consoleViewIsDisposed(project)) {
-            consoleView = createConsoleView(project);
-        }
-        showConsoleView(project, consoleView);
+        consoleView = FlowTrackerToolWindowFactory.validateToolWindowIntegrity(project);
 
         PsiElement psiElement = event.getData(LangDataKeys.PSI_ELEMENT);
 
@@ -75,48 +56,6 @@ public class FlowTrackerAction extends AnAction {
         if (psiElement instanceof PsiMethod) {
             analyzeReferences(project, (PsiMethod) psiElement, null, new Stack<>());
         }
-    }
-
-    @Nullable
-    private ConsoleView createConsoleView(@Nullable Project project) {
-        if (project != null) {
-            return TextConsoleBuilderFactory.getInstance().createBuilder(project).getConsole();
-        } else {
-            return null;
-        }
-    }
-
-    private void showConsoleView(Project project, ConsoleView consoleView) {
-        ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
-        ToolWindow toolWindow = toolWindowManager.getToolWindow(TOOL_WINDOW_ID);
-
-        if (toolWindow == null) {
-            toolWindow = toolWindowManager.registerToolWindow(TOOL_WINDOW_ID, true, ToolWindowAnchor.BOTTOM);
-            toolWindow.setType(ToolWindowType.DOCKED, null);
-        }
-
-        Disposable disposable = consoleView::dispose;
-
-        ContentManager contentManager = toolWindow.getContentManager();
-
-        if (contentManager.getContentCount() == 0) {
-            ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
-            Content content = contentFactory.createContent(consoleView.getComponent(), TOOL_WINDOW_TAB_ID, true);
-            content.setDisposer(disposable);
-            contentManager.addContent(content);
-        }
-
-        // Load the icon image from the resources folder
-        Icon icon = new ImageIcon(FlowTrackerAction.class.getResource(TOOL_WINDOW_ICON));
-        toolWindow.setIcon(icon);
-
-        toolWindow.show(consoleView::requestScrollingToEnd);
-    }
-
-    private boolean consoleViewIsDisposed(Project project) {
-        if (consoleView != null)
-            return project.isDisposed() || ((ConsoleViewImpl) consoleView).getEditor() == null || ((ConsoleViewImpl) consoleView).getEditor().isDisposed();
-        return false;
     }
 
     /**
