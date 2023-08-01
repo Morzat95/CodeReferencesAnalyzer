@@ -3,12 +3,12 @@
 
 <svg
    version="1.1"
-   width="40"
-   height="40"
-   viewBox="-0.5 -0.5 40 40"
+   width="13"
+   height="13"
+   viewBox="-0.5 -0.5 13 13"
    content="&lt;mxfile host=&quot;app.diagrams.net&quot; modified=&quot;2023-08-01T04:35:36.161Z&quot; agent=&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36&quot; etag=&quot;VAGX-cuwgUIsc4c0FLrn&quot; version=&quot;21.6.6&quot; type=&quot;google&quot; pages=&quot;2&quot;&gt;&lt;diagram name=&quot;Página-1&quot; id=&quot;yll1f_tDmqhoS0I6fXPl&quot;&gt;7Zldk5owFIZ/jZftBJDgXvrF7kU7XtiZbq86WQkfNhInBoX++gYIQmR12Blc0MqFw3nPCYFz8iRBBsZ0Ez8ztPW/UweTgQ6ceGDMBroOLSh+UyHJBcMCueCxwMklrRSWwV8sxSIsChy8UwI5pYQHW1Vc0TDEK65oiDF6UMNcStRet8jDNWG5QqSu/gwc7ufqSLdK/QUHnl/0rMGn3LNBRbB8kp2PHHqoSMZ8YEwZpTw/28RTTNLcFXnJ29lnvMcbYzjkTRosF2vPpnD94i5+Q3sx/uFx+EXe7I4nxQNjRzy/NCnjPvVoiMi8VCeMRqGD06sCYZUx3yjdClET4hpznshioohTIfl8Q6R3xxHj47Q4QghpiAvNDgiRl8WhcxIhlKqfvGXOPWY8EOUS0ipi++y20j5cETqlhLLsqQwATIDdrB9G/2DFo80m06OnKLIplHqGZdJ3NGIrfCGtxUhFzMP8QpyRx6U5r3Qg6/eM6QZzlogAhgniwV4dk0gObe8YV1ZfnMgB8IHBIK+7RySSPdVGR1n7NMkHP+B4uUVZLg6Cf7XOJzVwATIASnUacqUC6fFebSYzK/ecrURafhxfzJ30DiWGiWoeSqgLya/wXGjt5xrUcvsJ5CmItIFht5jpN4mZ/h9hpuldcwa74EzkjyWvafuvZmH+OiIljFmsWElD3Hq0xBkN2Rv2ij3juuxpb0jDep09Nzverw2cj+122NNO4Bt1zN7wuslGOgC6+ZFkQxu0NtGJzns201ndzHQ3M2OZN7lb0EaPsrZS1n4tROY9L0RPJ1Nj1wuRptWS+6mbQGULWO4Iz20C44C/Vs4rrYRVNkqNoo3CY79f2mBDXs1e8QrvmVeo8tr9nyPDx5p3kSGrIUOwVwxZ98zQ6ctX9xAZD4guQjRqCJHVK4g081HWVsrar/eB0T3PjcdvoNefG4VZflLNfJXv0sb8Hw==&lt;/diagram&gt;&lt;diagram name=&quot;Copia de Página-1&quot; id=&quot;Xdch3iCPI4TUIcYxQPhY&quot;&gt;7Vrfk5owEP5rfGyHgIA+Kmrb6fWh43R6dy83OYlALxIbg0r/+gZIgODdVTti1DteZL9sfu5+m2SxY3mL7ScKl+E34iPcMQ1/27FGHdMEXdPgPxmSFojrOgUQ0MgXShUwjf4gAYp6QRL5aKUoMkIwi5YqOCNxjGZMwSClZKOqzQlWe13CAO0A0xnEu+jPyGdhgfZMt8I/oygIZc/A6RclCyiVxUxWIfTJpgZZ447lUUJY8bbYeghniyfX5e7B++rc3/+2yZcn5ny/SYzBjw9FY5NDqpRToChmx23aFFNjqVwv5PPlEyKhLCQBiSEeV+iQkiT2UdaqwaVK54aQJQcBB38hxlLhCzBhhEMhW2BRumKQskFmWw7EJEYSm0QYi2ZR7Dc0OFIvx4954RpRFnFrc2iW0HU+rKyPOVf1CCY0n5VlGLaB5nk/lDwhpQSMhl5ZIn3E5kixNtmCNFzpH3YQeiuS0Bl6Rc8SdIA0QK+155bOxlmKyAIxmvJ6FGHIorU6OCjoEpR6lUvwF+EVB3iIGOQa4kT0tOMylUNkK78JI4amS5hPfcODimr8hmHmBrQMmOEkZopZsuc5gw1HblEiBsYdAG3/w0C7Cypa6Qq+p6q4qaKHhMJa4JDY0Q3Q1UFRhUvH4Osl8NG+BD7ab52PwNRMSEcHIfkC0vQ2q//RluJdyT0ujLaKlO7Jy4vbNN09SdrTSVK3XZKCRwiQuUvSef48bzBnPJi0SFLQYGlPM0l77VoAmoZh2odYwJkY7YZJPqLzipN9PXHyyuIdkJfmsz6VyNv+u7FPY2ytu5sc5Rva3vqN2Kp7ewNaEjfVIVQ5glYn0pcOoduI3dbea7W4VFXKBFlH4e413C7Bvuke8IIrnojcLSd8zpDcjkpu7RkfoCXlc32b6b75nMLltRGu5YzOGRKueVnUzzhNOZ1rY1xvX8bZWhnnvlv7lNbWe1lpORN0huG1/GLdfnjlYvUBPC+r/Y3AGv8F&lt;/diagram&gt;&lt;/mxfile&gt;"
    id="svg9"
-   sodipodi:docname="FlowTracker logo.drawio40x40.svg"
+   sodipodi:docname="pluginIcon_toolWindow.svg"
    inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -24,9 +24,9 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      showguides="true"
-     inkscape:zoom="9.6354302"
-     inkscape:cx="49.452904"
-     inkscape:cy="35.961031"
+     inkscape:zoom="38.541721"
+     inkscape:cx="7.6799892"
+     inkscape:cy="8.7567445"
      inkscape:window-width="1920"
      inkscape:window-height="1017"
      inkscape:window-x="-8"
@@ -41,7 +41,7 @@
   </defs>
   <g
      id="g9"
-     transform="matrix(0.16133487,0,0,0.14921075,1.5806674,1.5746054)">
+     transform="matrix(0.05808664,0,0,0.0537934,-0.43215838,-0.4850939)">
     <path
        d="m 42,20 q 30,0 30,20 0,20 30,20"
        fill="none"
