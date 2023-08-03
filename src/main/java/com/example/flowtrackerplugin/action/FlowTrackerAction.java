@@ -10,6 +10,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
@@ -72,7 +73,7 @@ public class FlowTrackerAction extends AnAction {
      */
     private boolean analyzeReferences(Project project, PsiMethod method, PsiElement methodReference, Stack<SimpleEntry<PsiMethod, PsiElement>> visitedMethods) {
 
-        if (isTestClass(method.getContainingClass()) || isTestMethod(method) || method.isConstructor()) {
+        if (!isInProjectSources(method) || isTestClass(method.getContainingClass()) || isTestMethod(method) || method.isConstructor()) {
             return true;
         }
 
@@ -96,7 +97,7 @@ public class FlowTrackerAction extends AnAction {
             // Get the parent method for the current reference
             PsiMethod parentMethod = PsiTreeUtil.getParentOfType(referenceElement, PsiMethod.class);
 
-            if (parentMethod.equals(method)) // This is to avoid a recursive call like with a Decorator Pattern
+            if (parentMethod == null || parentMethod.equals(method)) // This is to avoid any non-method references and a recursive call like with a Decorator Pattern
                 continue;
 
             boolean parentIsTestOrConstructorNode = analyzeReferences(project, parentMethod, referenceElement, visitedMethods);
@@ -112,6 +113,10 @@ public class FlowTrackerAction extends AnAction {
         // Go back one level
         visitedMethods.pop();
         return false;
+    }
+
+    private boolean isInProjectSources(PsiMethod psiMethod) {
+        return ProjectRootManager.getInstance(psiMethod.getProject()).getFileIndex().isInContent(psiMethod.getContainingFile().getVirtualFile());
     }
 
     private boolean isTestClass(PsiClass psiClass) {
