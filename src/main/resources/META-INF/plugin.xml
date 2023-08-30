@@ -1,6 +1,10 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
+    <!-- Since version 2023.2 of the IntelliJ Plugin the verification process alerts of a configuration defect due to
+    the prefix 'com.example.'. To fix this, I would need to change the id, but this means removing the plugin from the
+    marketplace and create a new one: https://intellij-support.jetbrains.com/hc/en-us/community/posts/6373603871122-Change-plugin-id
+     -->
     <id>com.example.FlowTrackerPlugin</id>
 
     <!-- Public plugin name should be written in Title Case.
