@@ -12,25 +12,28 @@ import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiExpression;
-import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiMethodCallExpression;
+import com.intellij.psi.PsiMethodReferenceExpression;
 import com.intellij.psi.PsiReference;
-import com.intellij.psi.PsiReferenceExpression;
-import com.intellij.psi.PsiSubstitutor;
+import com.intellij.psi.PsiThisExpression;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.impl.source.tree.java.PsiReferenceExpressionImpl;
 import com.intellij.psi.search.searches.ReferencesSearch;
-import com.intellij.psi.util.MethodSignature;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.PsiUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.Color;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.ListIterator;
 import java.util.Stack;
@@ -62,7 +65,7 @@ public class FlowTrackerAction extends AnAction {
 
         // Search for references to the method
         if (psiElement instanceof PsiMethod) {
-            analyzeReferences(project, (PsiMethod) psiElement, null, new Stack<>());
+            analyzeReferences(project, (PsiMethod) psiElement, null, new Stack<>(), ((PsiMethod) psiElement).getContainingClass());
         }
     }
 
@@ -78,7 +81,7 @@ public class FlowTrackerAction extends AnAction {
      * @param visitedMethods
      * @return
      */
-    private boolean analyzeReferences(Project project, PsiMethod method, PsiElement methodReference, Stack<SimpleEntry<PsiMethod, PsiElement>> visitedMethods) {
+    private boolean analyzeReferences(Project project, PsiMethod method, PsiElement methodReference, Stack<SimpleEntry<PsiMethod, PsiElement>> visitedMethods, PsiClass targetClass) {
 
         if (!isInProjectSources(method) || isTestClass(method.getContainingClass()) || isTestMethod(method) || method.isConstructor()) {
             return true;
@@ -90,19 +93,10 @@ public class FlowTrackerAction extends AnAction {
         Collection<PsiReference> references = ReferencesSearch.search(method).findAll();
 
         // Search for superMethods. I have to do this because ReferencesSearch works on the AST level, and the super method is not part of the current AST being searched
-        PsiMethod[] superMethods = method.findSuperMethods();
+        Collection<PsiMethod> superMethods = Arrays.stream(method.findSuperMethods()).filter(this::isInProjectSources).toList();
 
         for (PsiMethod superMethod : superMethods) {
             references.addAll(ReferencesSearch.search(superMethod).findAll());
-        }
-
-        if (belongsToAbstractClass(method)) {
-            // If the method belongs to an abstract class, filter the references.
-            // Only retain references that invoke the method from a class that overrides the method
-            // and that has been previously analyzed (exists in the visitedMethods stack).
-
-            // Filter the references based on the class of the immediately previously overridden method.
-            references = filterByImmediateOverrideMethodContainingClass(references, visitedMethods);
         }
 
         boolean isFinalNode = true;
@@ -113,10 +107,18 @@ public class FlowTrackerAction extends AnAction {
             // Get the parent method for the current reference
             PsiMethod parentMethod = PsiTreeUtil.getParentOfType(referenceElement, PsiMethod.class);
 
-            if (parentMethod == null || parentMethod.equals(method)) // This is to avoid any non-method references and a recursive call like with a Decorator Pattern
+            if (parentMethod == null || parentMethod.equals(method) || !isRelevantReference(reference, targetClass)) // This is to avoid any non-method references and a recursive call like with a Decorator Pattern
                 continue;
 
-            boolean parentIsTestOrConstructorNode = analyzeReferences(project, parentMethod, referenceElement, visitedMethods);
+            PsiClass parentMethodContainingClass = parentMethod.getContainingClass();
+
+            boolean parentIsTestOrConstructorNode;
+
+            if (isInheritor(targetClass, parentMethodContainingClass)) {
+                parentIsTestOrConstructorNode = analyzeReferences(project, parentMethod, referenceElement, visitedMethods, targetClass);
+            } else {
+                parentIsTestOrConstructorNode = analyzeReferences(project, parentMethod, referenceElement, visitedMethods, parentMethodContainingClass);
+            }
 
             isFinalNode = isFinalNode && parentIsTestOrConstructorNode;
         }
@@ -129,6 +131,48 @@ public class FlowTrackerAction extends AnAction {
         // Go back one level
         visitedMethods.pop();
         return false;
+    }
+
+    private boolean isRelevantReference(PsiReference reference, PsiClass targetClass) {
+        if (targetClass == null)
+            return false;
+
+        PsiElement element = reference.getElement();
+
+        PsiExpression qualifierExpression = getQualifierExpression(element);
+
+        PsiClass resolvedClass = getQualifierClass(qualifierExpression);
+        return isRelevantClass(resolvedClass, targetClass);
+    }
+
+    private PsiExpression getQualifierExpression(PsiElement element) {
+        if (element instanceof PsiMethodReferenceExpression methodReferenceExpression) {
+            return methodReferenceExpression.getQualifierExpression();
+        } else {
+            PsiMethodCallExpression methodCallExpression = PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression.class);
+
+            if (methodCallExpression == null)
+                return null;
+
+            return methodCallExpression.getMethodExpression().getQualifierExpression();
+        }
+    }
+
+    private PsiClass getQualifierClass(PsiExpression qualifierExpression) {
+        if (qualifierExpression == null)
+            return null;
+
+        PsiType qualifierType = qualifierExpression.getType();
+
+        return PsiUtil.resolveClassInType(qualifierType);
+    }
+
+    private boolean isRelevantClass(PsiClass resolvedClass, PsiClass targetClass) {
+        return resolvedClass != null && (resolvedClass.equals(targetClass) || isInheritor(targetClass, resolvedClass) || isInheritor(resolvedClass, targetClass));
+    }
+
+    private boolean isInheritor(PsiClass psiClass, PsiClass targetClass) {
+        return psiClass.isInheritor(targetClass, true);
     }
 
     private boolean isInProjectSources(PsiMethod psiMethod) {
@@ -145,117 +189,6 @@ public class FlowTrackerAction extends AnAction {
 
     private boolean isTestDefinition(String definition) {
         return definition.toLowerCase().endsWith("test");
-    }
-
-    private boolean belongsToAbstractClass(PsiMethod method) {
-        return method.getContainingClass().hasModifierProperty(PsiModifier.ABSTRACT);
-    }
-
-    /**
-     * Filters the provided references based on whether they match the class of the immediate
-     * overriding method found in the stack of visited methods.
-     * <p>
-     * This method first identifies an overriding method from the stack of visited methods
-     * using the {@code retrieveOverridingMethodForCurrentFlow} method. If such a method is found,
-     * it extracts its containing class's fully qualified name. The provided references are then
-     * filtered based on whether they match this class.
-     * </p>
-     *
-     * @param references A collection of {@code PsiReference} to be filtered.
-     * @param visitedMethods A stack of visited methods, paired with a relevant PsiElement.
-     * @return A filtered collection of {@code PsiReference} that belong to the class of the
-     *         identified overriding method. If no such method is found, the original references
-     *         collection is returned unaltered.
-     */
-    private Collection<PsiReference> filterByImmediateOverrideMethodContainingClass(Collection<PsiReference> references,  Stack<SimpleEntry<PsiMethod, PsiElement>> visitedMethods) {
-        PsiMethod matchingMethod = retrieveOverridingMethodForCurrentFlow(visitedMethods);
-
-        if (matchingMethod == null)
-            return references;
-
-        String matchingClass = matchingMethod.getContainingClass().getQualifiedName();
-
-        return references.stream().filter(reference -> {
-            String fieldClassName = resolveFieldReferenceClassName(reference);
-            return fieldClassName != null && fieldClassName.equals(matchingClass);
-        }).toList();
-    }
-
-    /**
-     * Retrieves the overriding method from a stack of visited methods that directly overrides
-     * a method in its abstract superclass.
-     * <p>
-     * This method traverses the stack of visited methods, and for each method, checks if it is
-     * an overriding method. If so, it then navigates the hierarchy of its containing class to
-     * locate an abstract superclass. If an abstract superclass is found, the method then compares
-     * the signatures of all methods in the superclass to identify if the current method overrides
-     * any of them. If a match is found, that current method is returned.
-     * </p>
-     *
-     * @param visitedMethods A stack of visited methods, paired with a relevant PsiElement.
-     * @return The overriding method that overrides a method from an abstract superclass if found;
-     *         otherwise, returns null.
-     */
-    private PsiMethod retrieveOverridingMethodForCurrentFlow(Stack<SimpleEntry<PsiMethod, PsiElement>> visitedMethods) {
-        for(int i = visitedMethods.size() - 1; i >= 0; i--) {
-            PsiMethod currentMethod = visitedMethods.get(i).getKey();
-            if (isMethodOverriding(currentMethod)) {
-                PsiClass containingClass = currentMethod.getContainingClass();
-                PsiClass superClass = containingClass.getSuperClass();
-
-                while (superClass != null) {
-                    if (superClass.isInterface()) { // Skip interface
-                        superClass = superClass.getSuperClass();
-                        continue;
-                    }
-
-                    if (superClass.hasModifierProperty(PsiModifier.ABSTRACT)) {
-                        for (PsiMethod method : superClass.getAllMethods()) {
-                            MethodSignature methodSignature = method.getSignature(PsiSubstitutor.EMPTY);
-                            MethodSignature overridingMethodSignature = currentMethod.getSignature(PsiSubstitutor.EMPTY);
-                            if (methodSignature.equals(overridingMethodSignature)) {
-                                return currentMethod;
-                            }
-                        }
-                    }
-                }
-                return null;
-            }
-        }
-        return null;
-    }
-
-    private boolean isMethodOverriding(PsiMethod method) {
-        PsiMethod[] superMethods = method.findSuperMethods();
-        return superMethods.length > 0;
-    }
-
-    /**
-     * Resolves and retrieves the fully qualified class name of the type of field referenced by a given {@code PsiReference}.
-     * <p>
-     * The method checks if the provided reference is a {@code PsiReferenceExpression}. If so, it inspects its qualifier to
-     * determine if it corresponds to a {@code PsiField}. If both conditions are satisfied, the canonical text of the field's
-     * type (essentially its fully qualified class name) is returned.
-     * </p>
-     *
-     * @param reference A {@code PsiReference} whose associated field's class name needs to be determined.
-     * @return The fully qualified class name of the field associated with the reference, or {@code null} if
-     *         the reference does not correspond to a field or if the class name cannot be resolved.
-     */
-    private String resolveFieldReferenceClassName(PsiReference reference) {
-        if (reference instanceof PsiReferenceExpression) {
-            PsiReferenceExpression referenceExpression = (PsiReferenceExpression) reference;
-            PsiExpression qualifierExpression = referenceExpression.getQualifierExpression();
-            if (qualifierExpression instanceof PsiReferenceExpression) {
-                PsiElement resolvedElement = ((PsiReferenceExpression) qualifierExpression).resolve();
-                if (resolvedElement instanceof PsiField) {
-                    PsiField field = (PsiField) resolvedElement;
-                    PsiType fieldType = field.getType();
-                    return fieldType.getCanonicalText();
-                }
-            }
-        }
-        return null;
     }
 
     private void printStack(Project project, Stack<SimpleEntry<PsiMethod, PsiElement>> visitedMethods) {
