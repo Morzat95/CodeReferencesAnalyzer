@@ -1,5 +1,6 @@
 package com.example.flowtrackerplugin.action;
 
+import com.example.flowtrackerplugin.models.Node;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -35,7 +36,9 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.Color;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Stack;
 
 import static com.intellij.icons.AllIcons.Actions.DiagramDiff;
@@ -62,11 +65,16 @@ public class FlowTrackerAction extends AnAction {
         consoleView = FlowTrackerToolWindowFactory.validateToolWindowIntegrity(project);
 
         PsiElement psiElement = event.getData(LangDataKeys.PSI_ELEMENT);
+        //Map<PsiClass, Node> map = new HashMap<>();
+        Node root = new Node(psiElement);
+
 
         // Search for references to the method
         if (psiElement instanceof PsiMethod) {
-            analyzeReferences(project, (PsiMethod) psiElement, null, new Stack<>(), ((PsiMethod) psiElement).getContainingClass());
+            analyzeReferences(project, (PsiMethod) psiElement, null, new Stack<>(), ((PsiMethod) psiElement).getContainingClass(), root);
         }
+
+        System.out.println(root);
     }
 
     /**
@@ -81,13 +89,23 @@ public class FlowTrackerAction extends AnAction {
      * @param visitedMethods
      * @return
      */
-    private boolean analyzeReferences(Project project, PsiMethod method, PsiElement methodReference, Stack<SimpleEntry<PsiMethod, PsiElement>> visitedMethods, PsiClass targetClass) {
+    private boolean analyzeReferences(Project project, PsiMethod method, PsiElement methodReference, Stack<SimpleEntry<PsiMethod, PsiElement>> visitedMethods, PsiClass targetClass, Node parentNode) {
 
         if (!isInProjectSources(method) || isTestClass(method.getContainingClass()) || isTestMethod(method) || method.isConstructor()) {
             return true;
         }
 
         visitedMethods.push(new SimpleEntry<>(method, methodReference));
+        //Node newNode = parentNode.addReference(methodReference); esto anda
+
+        Node newNode = null;
+
+        if (methodReference == null) {
+            newNode = parentNode;
+        } else {
+            newNode = parentNode.addReference(methodReference);
+        }
+
 
         // Search for references to the method
         Collection<PsiReference> references = ReferencesSearch.search(method).findAll();
@@ -115,9 +133,9 @@ public class FlowTrackerAction extends AnAction {
             boolean parentIsTestOrConstructorNode;
 
             if (isInheritor(targetClass, parentMethodContainingClass)) {
-                parentIsTestOrConstructorNode = analyzeReferences(project, parentMethod, referenceElement, visitedMethods, targetClass);
+                parentIsTestOrConstructorNode = analyzeReferences(project, parentMethod, referenceElement, visitedMethods, targetClass, newNode);
             } else {
-                parentIsTestOrConstructorNode = analyzeReferences(project, parentMethod, referenceElement, visitedMethods, parentMethodContainingClass);
+                parentIsTestOrConstructorNode = analyzeReferences(project, parentMethod, referenceElement, visitedMethods, parentMethodContainingClass, newNode);
             }
 
             isFinalNode = isFinalNode && parentIsTestOrConstructorNode;
