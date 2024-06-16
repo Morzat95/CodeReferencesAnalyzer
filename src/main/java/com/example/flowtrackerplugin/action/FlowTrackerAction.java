@@ -1,5 +1,6 @@
 package com.example.flowtrackerplugin.action;
 
+import com.example.flowtrackerplugin.drawers.impl.DisaggregateDrawer;
 import com.example.flowtrackerplugin.models.Node;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
@@ -68,13 +69,28 @@ public class FlowTrackerAction extends AnAction {
         //Map<PsiClass, Node> map = new HashMap<>();
         Node root = new Node(psiElement);
 
+        //long startTime = System.nanoTime();
+        long startTime = System.currentTimeMillis();
 
         // Search for references to the method
         if (psiElement instanceof PsiMethod) {
             analyzeReferences(project, (PsiMethod) psiElement, null, new Stack<>(), ((PsiMethod) psiElement).getContainingClass(), root);
         }
 
-        System.out.println(root);
+        //long midTime = System.nanoTime();
+        long midTime = System.currentTimeMillis();
+
+        //consoleView.print("Original algorithm duration: " + (midTime - startTime) / 1_000_000 + "\n", emptyContentType);
+        consoleView.print("Original algorithm duration: " + (midTime - startTime) + "\n\n", emptyContentType);
+
+        DisaggregateDrawer disaggregateDrawer = new DisaggregateDrawer(project, consoleView);
+        disaggregateDrawer.draw(root);
+
+        //long endTime = System.nanoTime();
+        long endTime = System.currentTimeMillis();
+
+        //consoleView.print("New algorithm duration: " + (endTime - midTime) / 1_000_000, emptyContentType);
+        consoleView.print("New algorithm duration: " + (endTime - midTime), emptyContentType);
     }
 
     /**

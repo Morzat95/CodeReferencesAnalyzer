@@ -30,4 +30,12 @@ public class Node {
         }
         return newNode;
     }
+
+    public PsiElement getElement() {
+        return element;
+    }
+
+    public Map<PsiClass, List<Node>> getReferencesByClass() {
+        return referencesByClass;
+    }
 }
